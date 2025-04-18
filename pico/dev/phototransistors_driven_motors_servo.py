@@ -10,7 +10,7 @@ sample_delay = 0.25 # delay for tuning overall response [s]
 ### phototransistor setup
 sensor_L = ADC(26) # A0 (left sensor)
 sensor_R = ADC(27) # A1 (right sensor)
-th_value = 0.6 # threshold value [0.0, 1.0] for sensitivity
+th_value = 0.4 # threshold value [0.0, 1.0] for sensitivity
 
 # checking accepted limits
 # scaling threshold to u16
@@ -36,7 +36,7 @@ elif speed_factor < 0.0:
 ### servo setup (with micropython-servo package)
 ## defaults: Servo(min_us=544.0, max_us=2400.0 ,min_deg=0.0, max_deg=180.0, freq=50)
 servo = Servo(pin_id=16, min_us=1000.0, max_us=2000.0, min_deg=-90.0, max_deg=90.0, freq=50)
-min_max_degs = (-80.0, 80.0) # rotation range [deg]
+min_max_degs = (-70.0, 70.0) # rotation range [deg]
 servo_delay = 0.005 # delay between 5deg rotation [s]
 servo.write(min_max_degs[0]) # initial position min rotation
 
@@ -44,6 +44,7 @@ utime.sleep(1)
 
 try:
     while True:
+        i = servo.read() # returns the last set degs
         light_L = sensor_L.read_u16()
         light_R = sensor_R.read_u16()
         print("light_L = %d" % light_L)
@@ -52,21 +53,23 @@ try:
         if max_light >= threshold:
             if light_L >= threshold:
                 motor_R.duty_u16(int(speed_factor * light_L))
+            else:
+                motor_R.duty_u16(0)
             if light_R >= threshold:
                 motor_L.duty_u16(int(speed_factor * light_R))
-            # TODO: servo thread should be here too
-            # i = servo.read() # returns the last set degs
-            # while i < min_max_degs[1]: # rotates servo +1deg at a time until max rotation
-                # i += 5
-                # servo.write(i)
-                # utime.sleep(servo_delay)
-            # utime.sleep(0.5)
-            # while i > min_max_degs[0]: # rotates servo -1deg at a time until min rotation
-                # i -= 5
-                # servo.write(i)
-                # utime.sleep(servo_delay)
+            else:
+                motor_L.duty_u16(0)
+            while i < min_max_degs[1]: # rotates servo +1deg at a time until max rotation
+                i += 5
+                servo.write(i)
+                utime.sleep(servo_delay)
+            while i > min_max_degs[0]: # rotates servo -1deg at a time until min rotation
+                i -= 5
+                servo.write(i)
+                utime.sleep(servo_delay)
         else:
-            servo.write(min_max_degs[0])
+            if i != min_max_degs[0]:
+                servo.write(min_max_degs[0])
             motor_L.duty_u16(0)
             motor_R.duty_u16(0)
         utime.sleep(sample_delay)
@@ -74,4 +77,6 @@ try:
 except KeyboardInterrupt:
     print("Stopping the program")
     servo.write(min_max_degs[0]) # finally min rotation
+    motor_L.duty_u16(0)
+    motor_R.duty_u16(0)
     utime.sleep(1)
