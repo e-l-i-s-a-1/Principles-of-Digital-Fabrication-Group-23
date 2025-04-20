@@ -74,6 +74,28 @@ def servo_thread():
         Shared.write_servo(Shared.min_max_degs[0]) # finally min rotation
         utime.sleep(1)
 
+def motor_thread(motor_L, motor_R, speed_factor):
+    try:
+        while True:
+            # if enough light sensed at left sensor, right motor rotates (and vice versa)
+            # motor speed is based on the intensity of the light
+            light_L = Shared.read_sensor_L()
+            light_R = Shared.read_sensor_R()
+            if light_L >= Shared.threshold:
+                motor_R.duty_u16(int(speed_factor * light_L))
+            else:
+                motor_R.duty_u16(0)
+            if light_R >= Shared.threshold:
+                motor_L.duty_u16(int(speed_factor * light_R))
+            else:
+                motor_L.duty_u16(0)
+            utime.sleep(Shared.sample_delay)
+            
+    except KeyboardInterrupt:
+        motor_L.duty_u16(0)
+        motor_R.duty_u16(0)
+        utime.sleep(1)
+
 ### motors setup
 motor_L = PWM(Pin(15))
 motor_R = PWM(Pin(10))
@@ -88,27 +110,10 @@ elif speed_factor < 0.0:
 
 utime.sleep(1)
 
+Shared.write_servo(Shared.min_max_degs[0])
+
 ### start servo thread on core 1
-_thread.start_new_thread(servo_thread, ())
+core1_thread = _thread.start_new_thread(servo_thread, ())
 
 ### main thread on core 0
-try:
-    while True:
-        # if enough light sensed at left sensor, right motor rotates (and vice versa)
-        # motor speed is based on the intensity of the light
-        light_L = Shared.read_sensor_L()
-        light_R = Shared.read_sensor_R()
-        if light_L >= Shared.threshold:
-            motor_R.duty_u16(int(speed_factor * light_L))
-        else:
-            motor_R.duty_u16(0)
-        if light_R >= threshold:
-            motor_L.duty_u16(int(speed_factor * light_R))
-        else:
-            motor_L.duty_u16(0)
-        utime.sleep(Shared.sample_delay)
-        
-except KeyboardInterrupt:
-    motor_L.duty_u16(0)
-    motor_R.duty_u16(0)
-    utime.sleep(1)
+motor_thread(motor_L, motor_R, speed_factor)
