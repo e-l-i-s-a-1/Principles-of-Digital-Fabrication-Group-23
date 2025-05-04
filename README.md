@@ -2,7 +2,7 @@
 ## Group 23
 ### Violent light-chasing alarm clock
 
-![Violent light-chasing alarm clock](./pico/experiments/250504_possible_hero_shot.jpeg)
+![Violent light-chasing alarm clock](./pico/experiments/250504_possible_hero_shot.JPEG)
 
 ---
 
