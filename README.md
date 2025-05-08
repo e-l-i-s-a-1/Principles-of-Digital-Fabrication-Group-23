@@ -2,7 +2,7 @@
 ## Group 23
 ### Violent light-chasing alarm clock
 
-![Violent light-chasing alarm clock](./pico/experiments/250504_possible_hero_shot.JPEG)
+![Violent light-chasing alarm clock](./pico/experiments/250504_hero_shot_front_hammerside.JPEG)
 
 ---
 
@@ -15,6 +15,7 @@ cad:
 pico:
     dev:
         -collection of Python-scripts tested with Pico (including the final "main_final.py")
+        -final code with some comments as a .png
         -micropython firmware for Pico (.uf2)
         -schematic as a pptx- and jpeg-file
   
@@ -27,7 +28,7 @@ pico:
 sketches:
     -some sketches and ideation from early phase of the design
 
--materials.xlsx (the materials&components list including costs and specifications)
+-materials.xlsx (the materials & components list including costs and specifications)
 
 -README.md (this file)
 ```
